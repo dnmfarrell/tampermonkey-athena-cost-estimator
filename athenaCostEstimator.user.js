@@ -82,6 +82,9 @@
         var minm = costPerTB / 100000; // 10MB minimum
         var base;
         switch (cells[1]) {
+            case 'B':
+                base = 10**9 * 1024; // Athena 1024 Bytes in KB, 1000 KB in MB
+                break;
             case 'KB':
                 base = 10**9;
                 break;
