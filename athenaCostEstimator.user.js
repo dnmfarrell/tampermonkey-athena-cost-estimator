@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AWS Athena cost estimator (USD only)
 // @namespace    https://github.com/dnmfarrell/tampermonkey-athena-cost-estimator
-// @version      0.1
+// @version      0.2
 // @description  Displays a $ cost estimate per query in the AWS Athena console
 // @author       David Farrell
 // @match        https://*.console.aws.amazon.com/athena/home*
