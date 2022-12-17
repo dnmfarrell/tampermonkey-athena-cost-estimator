@@ -36,6 +36,7 @@
     var observer = new MutationObserver(function(mutations) {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
+              try {
                 var stats = node.querySelector("div.query-stats");
                 if (!stats) {
                     return;
@@ -59,21 +60,22 @@
                 dola.firstChild.lastChild.innerHTML = "$ " + cost;
                 var scanObs = new MutationObserver(function(mutations) {
                     for (const node of mutations) {
+                      try {
                         var cost = dataStrToCost(node.target.data);
                         qury.querySelector("div.query-stats").querySelector("[data-testid='query-cost']").firstChild.lastChild.innerHTML = "$ " + cost;
+                      } catch (e) {
+                        console.log("Athena cost:charData  error " + e);
+                      }
                     }
                 });
                 scanObs.observe(scan.firstChild.lastChild.firstChild, { attributes: true, childList: true, subtree: true, characterData: true});
+              } catch (e) {
+                console.log("Athena cost: addedNodes error " + e);
+              }
             }
         }
     });
     observer.observe(qury, { attributes: true, childList: true, subtree: true});
-    function scanChange(mutations) {
-        console.log("Athena Cost: scan-data-change");
-        for (const node of mutations) {
-            console.log(node.target.data);
-        }
-    }
     function dataStrToCost(data) {
         var cells = data.split(" ");
         if (!cells || cells.length < 2) {
