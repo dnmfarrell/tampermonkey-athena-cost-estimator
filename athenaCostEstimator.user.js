@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AWS Athena cost estimator (USD only)
 // @namespace    https://github.com/dnmfarrell/tampermonkey-athena-cost-estimator
-// @version      0.4
+// @version      0.5
 // @description  Displays a $ cost estimate per query in the AWS Athena console
 // @author       David Farrell
 // @match        https://*.console.aws.amazon.com/athena/home*
@@ -11,9 +11,8 @@
 
 (function() {
   'use strict';
-  console.log("Athena Cost: observing changes");
   // https://aws.amazon.com/athena/pricing/ as of 2022-12-13
-  var athenaPrices = {
+  const athenaPrices = {
     "us-west-1": 6.75,
     "af-south-1": 6.00,
     "ap-east-1": 5.50,
@@ -25,8 +24,8 @@
     "me-south-1": 6.50,
     "sa-east-1": 9.00
   };
-  var region = document.location.host.split(".",1)[0]
-  var costPerTB = athenaPrices.hasOwnProperty(region) ? athenaPrices[region] : 5.00;
+  const region = document.location.host.split(".",1)[0]
+  const costPerTB = athenaPrices.hasOwnProperty(region) ? athenaPrices[region] : 5.00;
   console.log("Athena Cost: set cost per TB to $ " + costPerTB.toFixed(2));
   observeQueryStatusChanges();
   function observeQueryStatusChanges() {
@@ -36,28 +35,47 @@
           for (const node of mutation.addedNodes) {
             if ('classList' in node && node.classList.contains('query-status-box')) {
               console.log("Athena Cost: saw new query-status-box");
-              var scan = node.querySelector("[data-testid='query-data-scanned']");
-              if (!scan) {
-                return;
-              }
-              console.log("Athena Cost: found query-data-scanned");
-              var dola = node.querySelector("[data-testid='query-cost']");
-              if (!dola) {
-                console.log("Athena Cost: creating est. cost cell");
-                dola = scan.cloneNode(true);
-                dola.setAttribute("data-testid","query-cost");
-                dola.firstChild.firstChild.firstChild.firstChild.data = "Est. cost";
-                scan.parentNode.appendChild(dola);
-              }
-              const cost = dataStrToCost(scan.firstChild.lastChild.firstChild.textContent);
-              console.log("Athena cost: scan cost " + cost);
-              dola.firstChild.lastChild.innerHTML = "$ " + cost;
+              var dataScannedNode = node.querySelector("[data-testid='query-data-scanned']");
+              calcEstimatedCost(dataScannedNode);
+              // when the query status box is changed but not removed/added:
+              var queryStatusBoxObs = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                  if (mutation.type === 'characterData') {
+                    var dataScannedNode = node.querySelector("[data-testid='query-data-scanned']");
+                    // only calculate when the data-scanned value changes
+                    if (dataScannedNode.contains(mutation.target)) {
+                      calcEstimatedCost(dataScannedNode);
+                    }
+                  }
+                });
+              });
+              queryStatusBoxObs.observe(node, { childList: true, subtree: true, characterData: true});
             }
           }
         }
       });
     });
     observer.observe(document.body, { childList: true, subtree: true });
+  }
+  function calcEstimatedCost(dataScannedNode) {
+    try { // ignore DOM races
+      if (!dataScannedNode) {
+        return;
+      }
+      var dola = dataScannedNode.parentNode.querySelector("[data-testid='query-cost']");
+      if (!dola) {
+        console.log("Athena Cost: creating est. cost cell");
+        dola = dataScannedNode.cloneNode(true);
+        dola.setAttribute("data-testid","query-cost");
+        dola.firstChild.firstChild.firstChild.firstChild.data = "Est. cost";
+        dataScannedNode.parentNode.appendChild(dola);
+      }
+      const cost = dataStrToCost(dataScannedNode.firstChild.lastChild.firstChild.textContent);
+      console.log("Athena cost: scan cost " + cost);
+      dola.firstChild.lastChild.innerHTML = "$ " + cost;
+    } catch (e) {
+      console.log("Athena cost: caught exception " + e);
+    }
   }
   function dataStrToCost(data) {
     var cells = data.split(" ");
