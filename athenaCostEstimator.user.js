@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AWS Athena cost estimator (USD only)
 // @namespace    https://github.com/dnmfarrell/tampermonkey-athena-cost-estimator
-// @version      0.5
+// @version      0.6
 // @description  Displays a $ cost estimate per query in the AWS Athena console
 // @author       David Farrell
 // @match        https://*.console.aws.amazon.com/athena/home*
@@ -26,7 +26,7 @@
   };
   const region = document.location.host.split(".",1)[0]
   const costPerTB = athenaPrices.hasOwnProperty(region) ? athenaPrices[region] : 5.00;
-  console.log("Athena Cost: set cost per TB to $ " + costPerTB.toFixed(2));
+  console.log("Athena cost: set cost per TB to $ " + costPerTB.toFixed(2));
   observeQueryStatusChanges();
   function observeQueryStatusChanges() {
     var observer = new MutationObserver(function(mutations) {
@@ -34,7 +34,7 @@
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
           for (const node of mutation.addedNodes) {
             if ('classList' in node && node.classList.contains('query-status-box')) {
-              console.log("Athena Cost: saw new query-status-box");
+              console.log("Athena cost: saw new query-status-box");
               var dataScannedNode = node.querySelector("[data-testid='query-data-scanned']");
               calcEstimatedCost(dataScannedNode);
               // when the query status box is changed but not removed/added:
@@ -64,7 +64,7 @@
       }
       var dola = dataScannedNode.parentNode.querySelector("[data-testid='query-cost']");
       if (!dola) {
-        console.log("Athena Cost: creating est. cost cell");
+        console.log("Athena cost: creating est. cost cell");
         dola = dataScannedNode.cloneNode(true);
         dola.setAttribute("data-testid","query-cost");
         dola.firstChild.firstChild.firstChild.firstChild.data = "Est. cost";
@@ -101,7 +101,7 @@
         base = 1;
         break;
       default:
-        console.log("Athena Cost: error unrecognized unit " + cells[1]);
+        console.log("Athena cost: error unrecognized unit " + cells[1]);
         return (0.00).toFixed(5);
     }
     var cost = parseFloat(cells[0])/base*costPerTB;
