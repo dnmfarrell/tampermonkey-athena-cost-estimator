@@ -11,8 +11,12 @@ This script uses the AWS regional pricing as of December 13, 2022.
 Install
 -------
 1. Install the Tampermonkey Chrome extension.
-2. Open the Athena Cost Estimator [source code](https://github.com/dnmfarrell/tampermonkey-athena-cost-estimator/raw/master/athenaCostEstimator.user.js) and click "install".
-3. The "Est. cost" stat will automatically appear when running Athena queries on AWS console.
+2. Open the Athena Cost Estimator [source code](https://github.com/dnmfarrell/tampermonkey-athena-cost-estimator/raw/master/athenaCostEstimator.user.js) and click "install". Close the empty browser tab.
+3. The "Est. cost" stat will automatically appear the next time you run Athena queries on AWS console.
+
+Safety
+------
+Keep in mind that running strangers' code in your web browser is insecure. Even if you inspect the code and determine it to be safe, what if it is updated later? At a minimum, I would disable automatic updates in Tampermonkey Settings by changing "Userscript Update" to "never". An even safer approach is to make a local copy of the script and delete the `@namespace` from the script header.
 
 License
 -------
