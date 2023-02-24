@@ -2,7 +2,7 @@ AWS Athena Cost Estimator
 -------------------------
 This [Tampermonkey](https://www.tampermonkey.net/) script adds an estimated cost amount in USD to the query results stats bar:
 
-![](stats-bar.png)
+![](athenaspend.gif)
 
 Athena charges [per TB data scanned per query](https://aws.amazon.com/athena/pricing/), with a minimum of 10 MB per query.
 
